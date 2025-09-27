@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js'
 interface Profile {
   id: string
   name: string | null
+  bio: string | null
   avatar_url: string | null
   created_at: string
   updated_at: string
@@ -64,6 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId)
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -71,8 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
+        console.log('Profile fetch error:', error)
         // If profile doesn't exist, create one
         if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating new profile for user:', userId)
           const { data: userData } = await supabase.auth.getUser()
           if (userData.user) {
             const { error: createError } = await supabase
@@ -81,15 +86,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: userId,
                 name: userData.user.email?.split('@')[0] || 'User',
               })
-            
-            if (!createError) {
+
+            if (createError) {
+              console.error('Error creating profile:', createError)
+            } else {
+              console.log('Profile created successfully')
               // Fetch the newly created profile
               const { data: newProfile } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single()
-              
+
               setProfile(newProfile)
             }
           }
@@ -99,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
+      console.log('Profile found:', data)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
@@ -126,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // If signup was successful and we have a user, create a profile
     if (!error && data.user) {
+      console.log('Creating profile for new user:', data.user.id)
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -134,7 +144,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
       
       if (profileError) {
-        console.warn('Failed to create profile:', profileError)
+        console.error('Failed to create profile:', profileError)
+      } else {
+        console.log('Profile created successfully during signup')
       }
     }
     

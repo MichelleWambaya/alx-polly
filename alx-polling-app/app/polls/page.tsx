@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
+import { apiCache, cacheKeys, invalidateCache } from '@/lib/cache'
+import { measureDbQuery } from '@/lib/performance'
 
 interface PollOption {
   id: number;
@@ -33,6 +35,9 @@ interface Poll {
 export default function PollsDashboard() {
   const [polls, setPolls] = useState<Poll[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [currentPage, setCurrentPage] = useState(0)
   const [error, setError] = useState('')
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [showErrorAlert, setShowErrorAlert] = useState(false)
@@ -53,16 +58,35 @@ export default function PollsDashboard() {
     }
   }, [])
 
-  const fetchPolls = async () => {
+  const fetchPolls = async (page = 0, limit = 10) => {
     try {
+      if (page === 0) {
+        setLoading(true)
+      } else {
+        setLoadingMore(true)
+      }
+
+      const cacheKey = cacheKeys.polls(page, limit)
+      const cachedData = apiCache.get(cacheKey)
+      
+      if (cachedData && page === 0) {
+        setPolls(cachedData)
+        setLoading(false)
+        return
+      }
+
       // First, get all polls with their options
-      const { data: pollsData, error: pollsError } = await supabase
-        .from('polls')
-        .select(`
-          *,
-          poll_options (*)
-        `)
-        .order('created_at', { ascending: false })
+      const { data: pollsData, error: pollsError } = await measureDbQuery(
+        `fetch-polls-page-${page}`,
+        () => supabase
+          .from('polls')
+          .select(`
+            *,
+            poll_options (*)
+          `)
+          .order('created_at', { ascending: false })
+          .range(page * limit, (page + 1) * limit - 1)
+      )
 
       if (pollsError) {
         throw pollsError
@@ -70,14 +94,21 @@ export default function PollsDashboard() {
 
       // Then get all unique user IDs and fetch their profiles
       const userIds = [...new Set(pollsData?.map(poll => poll.user_id) || [])]
+      
+      // Debug logging
+      console.log('User IDs from polls:', userIds)
+      
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name')
         .in('id', userIds)
 
       if (profilesError) {
+        console.error('Error fetching profiles:', profilesError)
         throw profilesError
       }
+      
+      console.log('Profiles data:', profilesData)
 
       // Create a map of user_id to profile name
       const profilesMap = profilesData?.reduce((acc, profile) => {
@@ -93,13 +124,31 @@ export default function PollsDashboard() {
         }
       })) || []
 
-      setPolls(pollsWithProfiles)
+      // Check if we have more data
+      setHasMore(pollsWithProfiles.length === limit)
+
+      if (page === 0) {
+        setPolls(pollsWithProfiles)
+        // Cache the first page for 2 minutes
+        apiCache.set(cacheKey, pollsWithProfiles, 2 * 60 * 1000)
+      } else {
+        setPolls(prev => [...prev, ...pollsWithProfiles])
+      }
+      
+      setCurrentPage(page)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch polls')
       setShowErrorAlert(true)
       setTimeout(() => setShowErrorAlert(false), 3000)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  const loadMorePolls = () => {
+    if (!loadingMore && hasMore) {
+      fetchPolls(currentPage + 1)
     }
   }
 
@@ -118,7 +167,9 @@ export default function PollsDashboard() {
         throw error
       }
 
-      // Refresh polls
+      // Invalidate cache and refresh polls
+      invalidateCache.polls()
+      invalidateCache.poll(pollId.toString())
       await fetchPolls()
     } catch (err: any) {
       setError(err.message || 'Failed to delete poll')
@@ -135,14 +186,37 @@ export default function PollsDashboard() {
     return poll.closes_at && new Date(poll.closes_at) < new Date()
   }
 
+  // Loading skeleton component
+  const PollSkeleton = () => (
+    <Card className="animate-pulse">
+      <CardHeader>
+        <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-muted rounded w-1/2"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="h-4 bg-muted rounded"></div>
+          <div className="h-4 bg-muted rounded w-5/6"></div>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <div className="h-8 bg-muted rounded w-20"></div>
+          <div className="h-8 bg-muted rounded w-16"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   if (loading) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="flex justify-center items-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading polls...</p>
-          </div>
+        <div className="mb-8">
+          <div className="h-8 bg-muted rounded w-48 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-muted rounded w-64 animate-pulse"></div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PollSkeleton key={i} />
+          ))}
         </div>
       </div>
     )
@@ -233,6 +307,33 @@ export default function PollsDashboard() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="flex justify-center mt-8">
+          <Button 
+            onClick={loadMorePolls} 
+            disabled={loadingMore}
+            variant="outline"
+            className="min-w-32"
+          >
+            {loadingMore ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                Loading...
+              </>
+            ) : (
+              'Load More Polls'
+            )}
+          </Button>
+        </div>
+      )}
+
+      {!hasMore && polls.length > 0 && (
+        <div className="text-center mt-8 text-muted-foreground">
+          <p>You've reached the end of the polls!</p>
         </div>
       )}
     </div>

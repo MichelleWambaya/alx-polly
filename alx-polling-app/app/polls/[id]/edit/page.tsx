@@ -12,32 +12,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
-
-interface PollOption {
-  id?: number;
-  text: string;
-  position: number;
-}
-
-interface Poll {
-  id: number;
-  title: string;
-  description: string | null;
-  allow_multi: boolean;
-  closes_at: string | null;
-  created_at: string;
-  updated_at: string;
-  poll_options: PollOption[];
-  user_id: string;
-}
+import type { EditPollData, EditPollOption, EditPollFormData } from '@/types'
 
 export default function EditPollPage() {
-  const [poll, setPoll] = useState<Poll | null>(null)
+  const [poll, setPoll] = useState<EditPollData | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [allowMulti, setAllowMulti] = useState(false)
   const [closesAt, setClosesAt] = useState('')
-  const [options, setOptions] = useState<PollOption[]>([])
+  const [options, setOptions] = useState<EditPollOption[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -85,7 +68,7 @@ export default function EditPollPage() {
       setClosesAt(pollData.closes_at ? new Date(pollData.closes_at).toISOString().slice(0, 16) : '')
       
       // Sort options by position
-      const sortedOptions = pollData.poll_options.sort((a: PollOption, b: PollOption) => a.position - b.position)
+      const sortedOptions = pollData.poll_options.sort((a: EditPollOption, b: EditPollOption) => a.position - b.position)
       setOptions(sortedOptions)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch poll')
@@ -114,6 +97,17 @@ export default function EditPollPage() {
     const newOptions = [...options]
     newOptions[index] = { ...newOptions[index], text }
     setOptions(newOptions)
+  }
+
+  // Helper function to create form data
+  const createFormData = (): EditPollFormData => {
+    return {
+      title,
+      description,
+      allowMulti,
+      closesAt,
+      options
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

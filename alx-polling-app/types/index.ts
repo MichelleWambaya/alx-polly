@@ -3,27 +3,28 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  bio?: string;
   createdAt: string;
   updatedAt?: string;
 }
 
 export interface Poll {
-  id: string;
+  id: number;
   title: string;
-  description?: string;
+  description: string | null;
   creatorId: string;
   creator: User;
   isPublic: boolean;
   allowMultipleVotes: boolean;
-  expiresAt?: string;
+  expiresAt: string | null;
   createdAt: string;
   updatedAt?: string;
   totalVotes: number;
 }
 
 export interface PollOption {
-  id: string;
-  pollId: string;
+  id: number;
+  pollId: number;
   text: string;
   orderIndex: number;
   votes: number;
@@ -31,9 +32,9 @@ export interface PollOption {
 }
 
 export interface Vote {
-  id: string;
-  pollId: string;
-  optionId: string;
+  id: number;
+  pollId: number;
+  optionId: number;
   voterId?: string;
   voterIp?: string;
   voterFingerprint?: string;
@@ -46,6 +47,33 @@ export interface PollWithOptions extends Poll {
 
 export interface PollWithResults extends PollWithOptions {
   options: (PollOption & { voteCount: number })[];
+}
+
+// Edit Poll Page specific types
+export interface EditPollData {
+  id: number;
+  title: string;
+  description: string | null;
+  allow_multi: boolean;
+  closes_at: string | null;
+  created_at: string;
+  updated_at: string;
+  poll_options: EditPollOption[];
+  user_id: string;
+}
+
+export interface EditPollOption {
+  id?: number;
+  text: string;
+  position: number;
+}
+
+export interface EditPollFormData {
+  title: string;
+  description: string;
+  allowMulti: boolean;
+  closesAt: string;
+  options: EditPollOption[];
 }
 
 // API Response types
