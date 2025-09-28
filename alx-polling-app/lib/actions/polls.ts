@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { pollSchema, voteSchema, validateInput, checkRateLimit } from '@/lib/validation'
 
 export async function createPoll(formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -78,7 +78,7 @@ export async function createPoll(formData: FormData) {
 }
 
 export async function updatePoll(pollId: string, formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -168,7 +168,7 @@ export async function updatePoll(pollId: string, formData: FormData) {
 }
 
 export async function deletePoll(pollId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -205,7 +205,7 @@ export async function deletePoll(pollId: string) {
 }
 
 export async function submitVote(pollId: string, optionId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()

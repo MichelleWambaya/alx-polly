@@ -21,6 +21,7 @@ export const pollSchema = z.object({
   description: z.string()
     .max(1000, 'Description must be less than 1000 characters')
     .optional()
+    .nullable()
     .transform(val => val ? sanitizeInput(val) : null),
   allow_multi: z.boolean().default(false),
   closes_at: z.string().datetime().optional().nullable(),
@@ -46,6 +47,7 @@ export const profileUpdateSchema = z.object({
   bio: z.string()
     .max(500, 'Bio must be less than 500 characters')
     .optional()
+    .nullable()
     .transform(val => val ? sanitizeInput(val) : null),
   email_notifications: z.boolean().default(true),
   poll_notifications: z.boolean().default(true),

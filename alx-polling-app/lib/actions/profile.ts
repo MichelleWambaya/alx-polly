@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { profileUpdateSchema, validateInput, checkRateLimit } from '@/lib/validation'
 
 export async function updateProfile(formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -65,7 +65,7 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function deleteAccount() {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()

@@ -58,7 +58,7 @@ const emptyPoll = {
 const transformPollForComponent = (poll: typeof mockPoll) => ({
   id: poll.id,
   title: poll.title,
-  description: poll.description,
+  description: poll.description || '',
   creatorId: poll.user_id,
   creator: {
     id: poll.user_id,
@@ -89,6 +89,7 @@ describe('PollResultChart', () => {
     it('renders poll title and description', () => {
       const transformedPoll = transformPollForComponent(mockPoll)
       render(<PollResultChart poll={transformedPoll} />)
+      
       
       expect(screen.getByText('Poll Results')).toBeInTheDocument()
       expect(screen.getByText(mockPoll.title)).toBeInTheDocument()
@@ -279,7 +280,7 @@ describe('PollResultChart', () => {
 
   describe('Edge Cases', () => {
     it('handles poll with no description', () => {
-      const pollWithoutDescription = { ...mockPoll, description: null }
+      const pollWithoutDescription = { ...mockPoll, description: null as any }
       const transformedPoll = transformPollForComponent(pollWithoutDescription)
       render(<PollResultChart poll={transformedPoll} />)
       
