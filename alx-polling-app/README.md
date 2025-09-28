@@ -1,29 +1,33 @@
 # ALX Polling App
 
-A modern, full-stack polling application built with Next.js 15, TypeScript, and Shadcn/ui components. This project showcases AI-assisted development practices and modern web development techniques.
+A modern, full-stack polling application built with Next.js 15, TypeScript, and Supabase. This project demonstrates secure web development practices with comprehensive input validation, server-side authorization, and production-ready security features.
 
-## 🤖 AI-Assisted Development
+## Project Overview
 
-This project was developed using AI-powered coding assistance to demonstrate modern development workflows:
+The ALX Polling App is a comprehensive web application that allows users to create, share, and participate in polls. Built with modern web technologies, it features secure authentication, real-time voting, and a responsive user interface.
 
-- **Architecture Design**: AI helped design the comprehensive system architecture including database schema, API structure, and component organization
-- **Code Generation**: Rapid prototyping and implementation of authentication, poll management, and UI components
-- **Best Practices**: AI guidance on TypeScript patterns, React hooks, and Supabase integration
-- **Error Resolution**: AI-assisted debugging and relationship mapping between database tables
-- **Documentation**: AI-generated comprehensive documentation and setup guides
+## Tech Stack
 
-## 🚀 Features
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **UI Components**: Shadcn/ui, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Security**: Server Actions, Input Validation, Rate Limiting
+- **Icons**: Lucide React
+- **Forms**: React Hook Form with Zod validation
+- **Deployment**: Vercel
 
-- **User Authentication**: Login/signup with Supabase Auth and email confirmation
-- **Poll Management**: Create, view, edit, and delete polls with real-time updates
+## Features
+
+- **Secure Authentication**: Supabase Auth with email confirmation
+- **Poll Management**: Create, view, edit, and delete polls with ownership verification
 - **Voting System**: Secure voting with duplicate prevention and live results
+- **QR Code Sharing**: Generate and share polls via QR codes
+- **User Settings**: Comprehensive profile and notification management
+- **Security**: Server-side validation, rate limiting, and security headers
 - **Responsive Design**: Mobile-first design with Tailwind CSS
-- **Modern UI**: Beautiful components with Shadcn/ui and smooth animations
 - **Type Safety**: Full TypeScript coverage with comprehensive type definitions
-- **Real-time Updates**: Live vote counting and poll status updates
-- **Security**: Row Level Security (RLS) and protected routes
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 alx-polling-app/
@@ -34,10 +38,8 @@ alx-polling-app/
 │   │   ├── create/               # Create new poll
 │   │   ├── [id]/                 # Individual poll view
 │   │   └── [id]/edit/            # Edit poll page
-│   ├── api/                      # API routes
-│   │   ├── auth/                 # Authentication endpoints
-│   │   ├── polls/                # Poll CRUD operations
-│   │   └── votes/                # Voting system
+│   ├── settings/                 # User settings page
+│   ├── profile/                  # User profile page
 │   ├── globals.css               # Global styles
 │   ├── layout.tsx                # Root layout with auth provider
 │   └── page.tsx                  # Root redirect
@@ -48,26 +50,17 @@ alx-polling-app/
 │   └── shared/                   # Shared components
 ├── lib/                          # Utilities and configurations
 │   ├── supabase/                 # Supabase client configs
+│   ├── actions/                  # Server actions for secure operations
 │   ├── auth-context.tsx          # Authentication context
+│   ├── validation.ts             # Input validation schemas
 │   └── utils.ts                  # Utility functions
 ├── types/                        # TypeScript definitions
 │   └── index.ts                  # Type definitions
-├── middleware.ts                 # Route protection middleware
+├── middleware.ts                 # Route protection and security headers
 └── README.md                     # This file
 ```
 
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **UI Components**: Shadcn/ui, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
-- **Icons**: Lucide React
-- **Forms**: React Hook Form
-- **Validation**: Zod
-- **Styling**: Tailwind CSS
-- **Deployment**: Vercel
-
-## 🚀 Getting Started
+## Setup Steps
 
 ### Prerequisites
 
@@ -89,16 +82,13 @@ alx-polling-app/
    ```
 
 3. **Set up Supabase**
-   - Create a new Supabase project
-   - Run the SQL schema from `supabase/schema.sql`
-   - Configure authentication settings
+   - Create a new Supabase project at [supabase.com](https://supabase.com)
+   - Go to Settings > API to get your project URL and anon key
+   - Run the SQL schema from `supabase/schema.sql` in the SQL editor
+   - Configure authentication settings in Authentication > Settings
 
 4. **Environment Configuration**
-   ```bash
-   cp env.example .env.local
-   ```
-   
-   Fill in your Supabase credentials:
+   Create a `.env.local` file in the root directory:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
@@ -113,35 +103,50 @@ alx-polling-app/
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 📱 Pages & Features
+## Usage Examples
 
-### Authentication
-- **Login** (`/login`): User authentication with email/password
-- **Signup** (`/signup`): User registration with validation and profile creation
+### Creating Polls
 
-### Poll Management
-- **Polls Dashboard** (`/polls`): View all public polls with owner controls
-- **Create Poll** (`/polls/create`): Create new polls with multiple options
-- **Poll Detail** (`/polls/[id]`): View individual poll and vote
-- **Edit Poll** (`/polls/[id]/edit`): Edit poll details and options
+1. **Sign up or log in** to your account
+2. **Navigate to Create Poll** by clicking "Create New Poll" on the dashboard
+3. **Fill in poll details**:
+   - Title (required, max 200 characters)
+   - Description (optional, max 1000 characters)
+   - Add 2-10 poll options
+   - Set voting preferences (single or multiple votes)
+   - Optional: Set a closing date
+4. **Submit the poll** - you'll be redirected to the poll with a QR code for sharing
 
-### API Endpoints
-- `GET /api/polls` - List all polls
-- `POST /api/polls` - Create new poll
-- `GET /api/polls/[id]` - Get poll details
-- `PUT /api/polls/[id]` - Update poll
-- `DELETE /api/polls/[id]` - Delete poll
-- `POST /api/votes` - Submit vote
-- `GET /api/votes` - Get votes for a poll
-- `POST /api/auth/login` - User login
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/logout` - User logout
+### Voting on Polls
 
-## 🎨 Components
+1. **Browse polls** on the main dashboard
+2. **Click on a poll** to view details and voting options
+3. **Select your choice(s)** based on the poll's voting rules
+4. **Submit your vote** - results update immediately
+5. **View live results** with vote counts and percentages
+
+### Managing Your Polls
+
+- **Edit polls**: Click "Edit" on your polls to modify details
+- **Delete polls**: Use the "Delete" button with confirmation
+- **Share polls**: Use the QR code or share button to distribute your poll
+- **View analytics**: See vote counts and participation rates
+
+### User Settings
+
+- **Profile management**: Update your display name and bio
+- **Notification preferences**: Control email and poll notifications
+- **Privacy settings**: Manage profile visibility and email display
+- **Appearance**: Choose between light, dark, or system theme
+- **Language**: Select your preferred language
+
+## Components
 
 ### Poll Components
 - `PollCard`: Display poll summary with results
 - `PollVoting`: Interactive voting interface
+- `QRCodeModal`: QR code generation and sharing
+- `PollResultChart`: Visual representation of poll results
 
 ### Auth Components
 - `AuthForm`: Reusable login/signup form
@@ -151,7 +156,43 @@ alx-polling-app/
 - `Navigation`: Main navigation bar with auth state
 - `Alert`: Animated success/error messages
 
-## 🔧 Development
+## How to Run and Test the App Locally
+
+### Development Server
+
+```bash
+# Start the development server
+npm run dev
+
+# The app will be available at http://localhost:3000
+```
+
+### Testing the Application
+
+1. **Test Authentication**:
+   - Sign up with a new email
+   - Check your email for confirmation link
+   - Log in with your credentials
+
+2. **Test Poll Creation**:
+   - Create a poll with multiple options
+   - Test validation (try submitting without title)
+   - Verify poll appears on dashboard
+
+3. **Test Voting**:
+   - Vote on a poll you created
+   - Try voting multiple times (should be prevented for single-vote polls)
+   - Check that results update immediately
+
+4. **Test Poll Management**:
+   - Edit a poll you created
+   - Delete a poll (with confirmation)
+   - Test QR code generation and sharing
+
+5. **Test User Settings**:
+   - Update your profile information
+   - Change notification preferences
+   - Test theme switching
 
 ### Available Scripts
 
@@ -162,6 +203,10 @@ npm run dev          # Start development server
 # Production
 npm run build        # Build for production
 npm run start        # Start production server
+
+# Testing
+npm run test         # Run test suite
+npm run test:watch   # Run tests in watch mode
 
 # Code Quality
 npm run lint         # Run ESLint
@@ -184,23 +229,23 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 ```
 
-## 🗄️ Database Schema
+## Database Schema
 
 The application uses Supabase with the following key tables:
 
-- **profiles**: User profile information
-- **polls**: Poll data with metadata
-- **poll_options**: Poll voting options
-- **votes**: User votes with constraints
+- **profiles**: User profile information and settings
+- **polls**: Poll data with metadata and ownership
+- **poll_options**: Poll voting options with positioning
+- **votes**: User votes with constraints and timestamps
 
-All tables include Row Level Security (RLS) policies for data protection.
+All tables include Row Level Security (RLS) policies for data protection and user isolation.
 
-## 🚀 Deployment to Vercel
+## Deployment to Vercel
 
 ### 1. Push to GitHub
 ```bash
 git add .
-git commit -m "feat: implement full-stack polling app with AI assistance"
+git commit -m "feat: implement secure polling app with comprehensive validation"
 git push origin main
 ```
 
@@ -217,23 +262,17 @@ git push origin main
 2. Add your Vercel domain to allowed origins
 3. Update redirect URLs for OAuth
 
-## 🔄 Next Steps
+## Security Features
 
-### Immediate Development Tasks:
-1. **Real-time Updates**: Implement Supabase Realtime subscriptions for live voting
-2. **QR Code Generation**: Add QR code sharing functionality
-3. **Poll Analytics**: Detailed voting statistics and insights
-4. **Advanced Security**: Rate limiting and bot detection
-5. **Mobile Optimization**: Enhanced mobile experience
+- **Server-side validation**: All inputs validated with Zod schemas
+- **Rate limiting**: Prevents abuse with configurable limits
+- **Input sanitization**: XSS protection and data cleaning
+- **Authorization**: Server-side ownership verification
+- **Security headers**: CSP, XSS protection, and frame options
+- **Secure sessions**: Proper session management and timeout
+- **Error handling**: No information disclosure in error messages
 
-### Advanced Features:
-1. **Export Data**: CSV/PDF export of poll results
-2. **Poll Templates**: Pre-built poll templates
-3. **Advanced Analytics**: User engagement metrics
-4. **Social Features**: Poll sharing and comments
-5. **Mobile App**: React Native mobile app
-
-## 📚 Learning Resources
+## Learning Resources
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Supabase Documentation](https://supabase.com/docs)
@@ -242,7 +281,7 @@ git push origin main
 - [TypeScript](https://www.typescriptlang.org/docs)
 - [React Hook Form](https://react-hook-form.com)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -250,29 +289,23 @@ git push origin main
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 If you have any questions or need help, please:
 - Open an issue on GitHub
 - Check the documentation
 - Review the code examples
 
-## 🎯 AI Development Highlights
+---
 
-This project demonstrates the power of AI-assisted development:
+**Happy Polling!**
 
-- **Rapid Prototyping**: Complete application built in record time
-- **Best Practices**: AI guidance ensured modern patterns and security
-- **Comprehensive Testing**: AI helped identify edge cases and error scenarios
-- **Documentation**: Detailed docs generated with AI assistance
-- **Code Quality**: Consistent, readable, and maintainable codebase
+*Built with secure development practices and modern web technologies*
 
 ---
 
-**Happy Polling!** 🗳️
-
-*Built with ❤️ and AI assistance*
+**Author**: Michelle Wambaya
