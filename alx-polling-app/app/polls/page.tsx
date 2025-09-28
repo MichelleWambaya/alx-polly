@@ -21,6 +21,7 @@ interface PollOption {
 
 interface Poll {
   id: number;
+  user_id: string;
   title: string;
   description: string | null;
   allow_multi: boolean;
@@ -79,22 +80,25 @@ export default function PollsDashboard() {
       // First, get all polls with their options
       const { data: pollsData, error: pollsError } = await measureDbQuery(
         `fetch-polls-page-${page}`,
-        () => supabase
-          .from('polls')
-          .select(`
-            *,
-            poll_options (*)
-          `)
-          .order('created_at', { ascending: false })
-          .range(page * limit, (page + 1) * limit - 1)
-      )
+        async () => {
+          const result = await supabase
+            .from('polls')
+            .select(`
+              *,
+              poll_options (*)
+            `)
+            .order('created_at', { ascending: false })
+            .range(page * limit, (page + 1) * limit - 1)
+          return result
+        }
+      ) as { data: any[] | null; error: any }
 
       if (pollsError) {
         throw pollsError
       }
 
       // Then get all unique user IDs and fetch their profiles
-      const userIds = [...new Set(pollsData?.map(poll => poll.user_id) || [])]
+      const userIds = [...new Set(pollsData?.map((poll: any) => poll.user_id) || [])]
       
       // Debug logging
       console.log('User IDs from polls:', userIds)
@@ -118,7 +122,7 @@ export default function PollsDashboard() {
       }, {} as Record<string, string>) || {}
 
       // Combine the data
-      const pollsWithProfiles = pollsData?.map(poll => ({
+      const pollsWithProfiles = pollsData?.map((poll: any) => ({
         ...poll,
         profiles: {
           name: profilesMap[poll.user_id] || null
