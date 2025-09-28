@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { apiCache, cacheKeys, invalidateCache } from '@/lib/cache'
 import { measureDbQuery } from '@/lib/performance'
 import { QRCodeModal } from '@/components/polls/QRCodeModal'
+import { deletePoll } from '@/lib/actions/polls'
 
 interface PollOption {
   id: number;
@@ -100,20 +101,14 @@ export default function PollsDashboard() {
       // Then get all unique user IDs and fetch their profiles
       const userIds = [...new Set(pollsData?.map((poll: any) => poll.user_id) || [])]
       
-      // Debug logging
-      console.log('User IDs from polls:', userIds)
-      
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name')
         .in('id', userIds)
 
       if (profilesError) {
-        console.error('Error fetching profiles:', profilesError)
         throw profilesError
       }
-      
-      console.log('Profiles data:', profilesData)
 
       // Create a map of user_id to profile name
       const profilesMap = profilesData?.reduce((acc, profile) => {
@@ -157,21 +152,14 @@ export default function PollsDashboard() {
     }
   }
 
-  const deletePoll = async (pollId: number) => {
+  const handleDeletePoll = async (pollId: number) => {
     if (!confirm('Are you sure you want to delete this poll?')) {
       return
     }
 
     try {
-      const { error } = await supabase
-        .from('polls')
-        .delete()
-        .eq('id', pollId)
-
-      if (error) {
-        throw error
-      }
-
+      await deletePoll(pollId.toString())
+      
       // Invalidate cache and refresh polls
       invalidateCache.polls()
       invalidateCache.poll(pollId.toString())
@@ -310,7 +298,7 @@ export default function PollsDashboard() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => deletePoll(poll.id)}
+                          onClick={() => handleDeletePoll(poll.id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           Delete

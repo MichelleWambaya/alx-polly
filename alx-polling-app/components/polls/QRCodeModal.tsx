@@ -62,8 +62,7 @@ export function QRCodeModal({ pollId, pollTitle, trigger, className }: QRCodeMod
           url: pollUrl,
         })
       } catch (err) {
-        // User cancelled or error occurred
-        console.log('Share cancelled or failed')
+        // User cancelled or error occurred - silent fail
       }
     } else {
       // Fallback to copy link

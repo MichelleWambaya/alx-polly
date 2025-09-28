@@ -29,6 +29,7 @@ import {
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from "sonner"
+import { updateProfile, deleteAccount } from '@/lib/actions/profile'
 
 interface UserSettings {
   name: string
@@ -121,24 +122,17 @@ export default function SettingsPage() {
     setSuccess('')
 
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          name: settings.name.trim(),
-          bio: settings.bio.trim() || null,
-          email_notifications: settings.emailNotifications,
-          poll_notifications: settings.pollNotifications,
-          public_profile: settings.publicProfile,
-          show_email: settings.showEmail,
-          theme: settings.theme,
-          language: settings.language,
-          updated_at: new Date().toISOString()
-        })
+      const formData = new FormData()
+      formData.append('name', settings.name)
+      formData.append('bio', settings.bio)
+      formData.append('email_notifications', settings.emailNotifications.toString())
+      formData.append('poll_notifications', settings.pollNotifications.toString())
+      formData.append('public_profile', settings.publicProfile.toString())
+      formData.append('show_email', settings.showEmail.toString())
+      formData.append('theme', settings.theme)
+      formData.append('language', settings.language)
 
-      if (updateError) {
-        throw updateError
-      }
+      await updateProfile(formData)
 
       setSuccess('Settings saved successfully!')
       setShowSuccessAlert(true)
@@ -156,39 +150,7 @@ export default function SettingsPage() {
     if (!user || deleteConfirmText !== 'DELETE') return
 
     try {
-      // Delete user's polls first
-      const { error: pollsError } = await supabase
-        .from('polls')
-        .delete()
-        .eq('user_id', user.id)
-
-      if (pollsError) {
-        throw pollsError
-      }
-
-      // Delete user's votes
-      const { error: votesError } = await supabase
-        .from('votes')
-        .delete()
-        .eq('user_id', user.id)
-
-      if (votesError) {
-        throw votesError
-      }
-
-      // Delete profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id)
-
-      if (profileError) {
-        throw profileError
-      }
-
-      // Sign out and redirect
-      await signOut()
-      router.push('/')
+      await deleteAccount()
       toast.success('Account deleted successfully')
     } catch (err: any) {
       setError(err.message || 'Failed to delete account')

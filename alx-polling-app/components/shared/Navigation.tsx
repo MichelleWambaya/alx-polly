@@ -24,12 +24,20 @@ export function Navigation() {
                 Browse Polls
               </Link>
               {user && (
-                <Link 
-                  href="/polls/create" 
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Create Poll
-                </Link>
+                <>
+                  <Link 
+                    href="/polls/create" 
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Create Poll
+                  </Link>
+                  <Link 
+                    href="/settings" 
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Settings
+                  </Link>
+                </>
               )}
             </div>
           </div>

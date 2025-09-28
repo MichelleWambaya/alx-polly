@@ -90,7 +90,7 @@ export default function ProfilePage() {
   const fetchUserData = async () => {
     if (!user) return
 
-    console.log('Fetching user data for:', user.id)
+        // Fetching user data
     setLoading(true)
     try {
       // Fetch user's polls
@@ -143,7 +143,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     if (!user) return
 
-    console.log('Updating profile for user:', user.id, 'with data:', { name, bio })
+        // Updating profile
     setSaving(true)
     setError('')
     setSuccess('')

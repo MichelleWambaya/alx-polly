@@ -62,13 +62,12 @@ export class PerformanceMonitor {
   // Log performance summary
   logSummary(): void {
     const metrics = this.getAllMetrics()
-    console.group('Performance Summary')
-    
-    for (const [label, data] of Object.entries(metrics)) {
-      console.log(`${label}: avg ${data.average.toFixed(2)}ms (${data.count} calls)`)
-    }
-    
-    console.groupEnd()
+    // Performance logging disabled in production
+    // console.group('Performance Summary')
+    // for (const [label, data] of Object.entries(metrics)) {
+    //   console.log(`${label}: avg ${data.average.toFixed(2)}ms (${data.count} calls)`)
+    // }
+    // console.groupEnd()
   }
 }
 

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
 import { QRCodeCard } from '@/components/polls/QRCodeModal'
+import { submitVote } from '@/lib/actions/polls'
 
 interface PollOption {
   id: number;
@@ -90,9 +91,9 @@ export default function PollDetailPage() {
         .eq('id', pollData.user_id)
         .single()
 
-      if (profileError) {
-        console.warn('Profile not found:', profileError)
-      }
+          if (profileError) {
+            // Profile not found - continue without profile data
+          }
 
       // Fetch vote counts for each option
       const { data: votesData, error: votesError } = await supabase
@@ -164,27 +165,17 @@ export default function PollDetailPage() {
     setError('')
 
     try {
-      const { error } = await supabase
-        .from('votes')
-        .insert({
-          poll_id: parseInt(pollId),
-          option_id: selectedOption,
-          user_id: user.id,
-        })
-
-      if (error) {
-        throw error
-      }
+      await submitVote(pollId, selectedOption.toString())
 
       setSuccess('Vote submitted successfully!')
       setShowSuccessAlert(true)
       setHasVoted(true)
-      
+
       // Hide success alert after 2 seconds
       setTimeout(() => {
         setShowSuccessAlert(false)
       }, 2000)
-      
+
       // Refresh poll data
       await fetchPoll()
     } catch (err: any) {

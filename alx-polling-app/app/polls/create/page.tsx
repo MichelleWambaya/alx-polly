@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
-import { createClient } from '@/lib/supabase/client'
+import { createPoll } from '@/lib/actions/polls'
 
 interface PollOption {
   text: string;
@@ -30,7 +30,6 @@ export default function CreatePollPage() {
   const [error, setError] = useState('')
   const router = useRouter()
   const { user } = useAuth()
-  const supabase = createClient()
 
   const addOption = () => {
     if (options.length < 10) {
@@ -63,56 +62,15 @@ export default function CreatePollPage() {
       return
     }
 
-    if (!title.trim()) {
-      setError('Title is required')
-      setLoading(false)
-      return
-    }
-
-    const validOptions = options.filter(option => option.text.trim())
-    if (validOptions.length < 2) {
-      setError('At least 2 options are required')
-      setLoading(false)
-      return
-    }
-
     try {
-      // Create the poll
-      const { data: poll, error: pollError } = await supabase
-        .from('polls')
-        .insert({
-          user_id: user.id,
-          title: title.trim(),
-          description: description.trim() || null,
-          allow_multi: allowMulti,
-          closes_at: closesAt || null,
-        })
-        .select()
-        .single()
+      const formData = new FormData()
+      formData.append('title', title)
+      formData.append('description', description)
+      formData.append('allow_multi', allowMulti.toString())
+      formData.append('closes_at', closesAt)
+      formData.append('options', JSON.stringify(options))
 
-      if (pollError) {
-        throw pollError
-      }
-
-      // Create the poll options
-      const optionsData = validOptions.map(option => ({
-        poll_id: poll.id,
-        text: option.text.trim(),
-        position: option.position,
-      }))
-
-      const { error: optionsError } = await supabase
-        .from('poll_options')
-        .insert(optionsData)
-
-      if (optionsError) {
-        // Rollback poll creation
-        await supabase.from('polls').delete().eq('id', poll.id)
-        throw optionsError
-      }
-
-      // Success - redirect to the created poll with QR code
-      router.push(`/polls/${poll.id}?created=true`)
+      await createPoll(formData)
     } catch (err: any) {
       setError(err.message || 'Failed to create poll')
     } finally {

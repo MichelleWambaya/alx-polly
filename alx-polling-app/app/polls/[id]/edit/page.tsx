@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
+import { updatePoll } from '@/lib/actions/polls'
 import type { EditPollData, EditPollOption, EditPollFormData } from '@/types'
 
 export default function EditPollPage() {
@@ -122,67 +123,15 @@ export default function EditPollPage() {
       return
     }
 
-    if (!title.trim()) {
-      setError('Title is required')
-      setSaving(false)
-      return
-    }
-
-    const validOptions = options.filter(option => option.text.trim())
-    if (validOptions.length < 2) {
-      setError('At least 2 options are required')
-      setSaving(false)
-      return
-    }
-
     try {
-      // Update the poll
-      const { error: pollError } = await supabase
-        .from('polls')
-        .update({
-          title: title.trim(),
-          description: description.trim() || null,
-          allow_multi: allowMulti,
-          closes_at: closesAt || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', pollId)
+      const formData = new FormData()
+      formData.append('title', title)
+      formData.append('description', description)
+      formData.append('allow_multi', allowMulti.toString())
+      formData.append('closes_at', closesAt)
+      formData.append('options', JSON.stringify(options))
 
-      if (pollError) {
-        throw pollError
-      }
-
-      // Delete existing options
-      const { error: deleteError } = await supabase
-        .from('poll_options')
-        .delete()
-        .eq('poll_id', pollId)
-
-      if (deleteError) {
-        throw deleteError
-      }
-
-      // Insert new options
-      const optionsData = validOptions.map(option => ({
-        poll_id: parseInt(pollId),
-        text: option.text.trim(),
-        position: option.position,
-      }))
-
-      const { error: optionsError } = await supabase
-        .from('poll_options')
-        .insert(optionsData)
-
-      if (optionsError) {
-        throw optionsError
-      }
-
-      setSuccess('Poll updated successfully!')
-      setShowSuccessAlert(true)
-      setTimeout(() => {
-        setShowSuccessAlert(false)
-        router.push('/polls')
-      }, 2000)
+      await updatePoll(pollId, formData)
     } catch (err: any) {
       setError(err.message || 'Failed to update poll')
       setShowErrorAlert(true)
