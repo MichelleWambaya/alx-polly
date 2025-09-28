@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
 import { apiCache, cacheKeys, invalidateCache } from '@/lib/cache'
 import { measureDbQuery } from '@/lib/performance'
+import { QRCodeModal } from '@/components/polls/QRCodeModal'
 
 interface PollOption {
   id: number;
@@ -282,10 +283,20 @@ export default function PollsDashboard() {
                     {poll.poll_options.length} options
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/polls/${poll.id}`}>View</Link>
                     </Button>
+                    
+                    <QRCodeModal 
+                      pollId={poll.id} 
+                      pollTitle={poll.title}
+                      trigger={
+                        <Button variant="outline" size="sm">
+                          Share
+                        </Button>
+                      }
+                    />
                     
                     {isPollOwner(poll) && (
                       <>

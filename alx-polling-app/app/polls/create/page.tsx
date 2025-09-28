@@ -111,8 +111,8 @@ export default function CreatePollPage() {
         throw optionsError
       }
 
-      // Success - redirect to polls dashboard
-      router.push('/polls?created=true')
+      // Success - redirect to the created poll with QR code
+      router.push(`/polls/${poll.id}?created=true`)
     } catch (err: any) {
       setError(err.message || 'Failed to create poll')
     } finally {

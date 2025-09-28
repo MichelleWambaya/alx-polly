@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
+import { QRCodeCard } from '@/components/polls/QRCodeModal'
 
 interface PollOption {
   id: number;
@@ -44,6 +45,7 @@ export default function PollDetailPage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const supabase = createClient()
 
@@ -53,7 +55,17 @@ export default function PollDetailPage() {
     if (pollId) {
       fetchPoll()
     }
-  }, [pollId])
+    
+    // Check if poll was just created
+    if (searchParams.get('created') === 'true') {
+      setSuccess('Poll created successfully! Share it using the QR code below.')
+      setShowSuccessAlert(true)
+      // Hide the alert after 3 seconds
+      setTimeout(() => {
+        setShowSuccessAlert(false)
+      }, 3000)
+    }
+  }, [pollId, searchParams])
 
   const fetchPoll = async () => {
     try {
@@ -317,6 +329,13 @@ export default function PollDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* QR Code Sharing Card */}
+      <QRCodeCard 
+        pollId={pollId} 
+        pollTitle={poll.title}
+        className="mt-6"
+      />
     </div>
   );
 }
