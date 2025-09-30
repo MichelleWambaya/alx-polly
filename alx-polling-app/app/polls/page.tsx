@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { apiCache, cacheKeys, invalidateCache } from '@/lib/cache'
 import { measureDbQuery } from '@/lib/performance'
 import { QRCodeModal } from '@/components/polls/QRCodeModal'
+import { Spinner } from '@/components/ui/spinner'
 import { deletePoll } from '@/lib/actions/polls'
 
 interface PollOption {
@@ -349,8 +350,8 @@ export default function PollsDashboard() {
       <div className="container mx-auto py-8 px-4">
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading polls...</p>
+            <Spinner variant="fireworks" colors={["#3b82f6","#22c55e","#f59e0b","#ef4444"]} speedMs={1200} />
+            <p className="text-muted-foreground mt-4">Loading polls...</p>
           </div>
         </div>
       </div>

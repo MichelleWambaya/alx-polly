@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
 import { QRCodeCard } from '@/components/polls/QRCodeModal'
+import { Spinner } from '@/components/ui/spinner'
 import { submitVote } from '@/lib/actions/polls'
 
 interface PollOption {
@@ -337,8 +338,8 @@ export default function PollDetailPage() {
       <div className="container mx-auto py-8 px-4 max-w-4xl">
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading poll...</p>
+            <Spinner variant="flag" colors={["#3b82f6","#22c55e","#ef4444"]} speedMs={900} />
+            <p className="text-muted-foreground mt-4">Loading poll...</p>
           </div>
         </div>
       </div>
